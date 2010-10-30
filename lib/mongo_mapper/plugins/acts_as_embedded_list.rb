@@ -51,6 +51,13 @@ module MongoMapper
 
 
 		  module InstanceMethods
+				# FIXME not sure if this is a good idea
+				def destroy
+					list_reference.delete(self)
+					decrement_positions_on_lower_items
+				end
+			
+			
 				# Insert the item at the given position (defaults to the top position of 1).
 		    def insert_at(position = 1)
 		      insert_at_position(position)

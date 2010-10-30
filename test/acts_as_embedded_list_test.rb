@@ -205,50 +205,50 @@ class ListTest < Test::Unit::TestCase
 	  #   assert_equal 5, new4.pos
 	  # end
 	
-	  # def test_delete_middle
-	    # assert_equal [1, 2, 3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
+	  def test_delete_middle
+	    assert_equal [1, 2, 3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
 	  
-	    # @list_root.embedded_list_items.detect{ |i| i.original_id == 2 }.destroy
+	    @list_root.embedded_list_items.detect{ |i| i.original_id == 2 }.destroy
 	    	  
-	    # assert_equal [1, 3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
+	    assert_equal [1, 3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
 	    	  
-	    # assert_equal 1, ListMixin.where(:original_id => 1).first.pos
-	    # assert_equal 2, ListMixin.where(:original_id => 3).first.pos
-	    # assert_equal 3, ListMixin.where(:original_id => 4).first.pos
-	    # 	  
-	    # ListMixin.where(:original_id => 1).first.destroy
-	    # 	  
-	    # assert_equal [3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
-	    # 	  
-	    # assert_equal 1, ListMixin.where(:original_id => 3).first.pos
-	    # assert_equal 2, ListMixin.where(:original_id => 4).first.pos
-	  # end
-# 	
+	    assert_equal 1, @list_root.embedded_list_items.detect{ |i| i.original_id == 1 }.pos
+	    assert_equal 2, @list_root.embedded_list_items.detect{ |i| i.original_id == 3 }.pos
+	    assert_equal 3, @list_root.embedded_list_items.detect{ |i| i.original_id == 4 }.pos
+	    	  
+	    @list_root.embedded_list_items.detect{ |i| i.original_id == 1 }.destroy
+	    	  
+	    assert_equal [3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
+	    	  
+	    assert_equal 1, @list_root.embedded_list_items.detect{ |i| i.original_id == 3 }.pos
+	    assert_equal 2, @list_root.embedded_list_items.detect{ |i| i.original_id == 4 }.pos
+	  end
+	
 # 	  def test_nil_scope
 # 	    new1, new2, new3 = ListMixin.create, ListMixin.create, ListMixin.create
 # 	    new2.move_higher
 # 	    assert_equal [new2, new1, new3], ListMixin.where(:parent_id => nil).sort(:pos).all
 # 	  end
-# 	   
-# 	  def test_remove_from_list_should_then_fail_in_list? 
-# 	    assert_equal true, ListMixin.where(:original_id => 1).first.in_list?
-# 	    ListMixin.where(:original_id => 1).first.remove_from_list
-# 	    assert_equal false, ListMixin.where(:original_id => 1).first.in_list?
-# 	  end 
-# 	  
-# 	  def test_remove_from_list_should_set_position_to_nil 
-# 	    assert_equal [1, 2, 3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
-# 	  
-# 	    ListMixin.where(:original_id => 2).first.remove_from_list 
-# 	  
-# 	    assert_equal [2, 1, 3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
-# 	  
-# 	    assert_equal 1,   ListMixin.where(:original_id => 1).first.pos
-# 	    assert_equal nil, ListMixin.where(:original_id => 2).first.pos
-# 	    assert_equal 2,   ListMixin.where(:original_id => 3).first.pos
-# 	    assert_equal 3,   ListMixin.where(:original_id => 4).first.pos
-# 	  end 
-# 
+	   
+	  def test_remove_from_list_should_then_fail_in_list? 
+	    assert_equal true, @list_root.embedded_list_items.detect{ |i| i.original_id == 1 }.in_list?
+	    @list_root.embedded_list_items.detect{ |i| i.original_id == 1 }.remove_from_list
+	    assert_equal false, @list_root.embedded_list_items.detect{ |i| i.original_id == 1 }.in_list?
+	  end 
+	  
+	  def test_remove_from_list_should_set_position_to_nil 
+	    assert_equal [1, 2, 3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
+	  
+	    @list_root.embedded_list_items.detect{ |i| i.original_id == 2 }.remove_from_list 
+	  
+	    # assert_equal [2, 1, 3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
+	    	  
+	    assert_equal 1,   @list_root.embedded_list_items.detect{ |i| i.original_id == 1 }.pos
+	    assert_equal nil, @list_root.embedded_list_items.detect{ |i| i.original_id == 2 }.pos
+	    assert_equal 2,   @list_root.embedded_list_items.detect{ |i| i.original_id == 3 }.pos
+	    assert_equal 3,   @list_root.embedded_list_items.detect{ |i| i.original_id == 4 }.pos
+	  end 
+
 # 	  def test_remove_before_destroy_does_not_shift_lower_items_twice 
 # 	    assert_equal [1, 2, 3, 4], @list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
 # 	  
