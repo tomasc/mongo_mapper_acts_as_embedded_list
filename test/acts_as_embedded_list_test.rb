@@ -13,7 +13,7 @@ require 'test/unit'
 # DB SETUP
 
 MongoMapper.connection = Mongo::Connection.new('127.0.0.1', 27017)
-MongoMapper.database = "mongo_mapper_acts_as_list_test"
+MongoMapper.database = "mongo_mapper_acts_as_embedded_list_test"
 MongoMapper.database.collections.each { |c| c.drop_indexes }
 
 def teardown_db
