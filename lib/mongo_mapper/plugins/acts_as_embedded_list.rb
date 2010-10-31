@@ -3,6 +3,9 @@ module MongoMapper
 		module ActsAsEmbeddedList
 
 			require 'mongo_mapper'
+			require 'mm_partial_update'
+
+			
   
 		  module ClassMethods
 				def acts_as_embedded_list(options = {})
@@ -50,13 +53,7 @@ module MongoMapper
 
 
 
-		  module InstanceMethods
-				# FIXME not sure if this is a good idea
-				def destroy
-					list_reference.delete(self)
-					decrement_positions_on_lower_items
-				end
-			
+		  module InstanceMethods			
 			
 				# Insert the item at the given position (defaults to the top position of 1).
 		    def insert_at(position = 1)
@@ -94,9 +91,8 @@ module MongoMapper
 		    end
 		
 				def update_position(value=nil)
-					# FIXME this should be replaced by partial update
 					self[position_column] = value
-					_root_document.save!
+					self.save_changes # requires mm_partial_update
 				end
 
 				# Removes the item from the list.
