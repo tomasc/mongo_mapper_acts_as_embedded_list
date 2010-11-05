@@ -16,6 +16,15 @@ module MongoMapper
             configuration[:column].to_s
           end
           
+          define_method 'acts_as_embedded_list_class' do
+            "::#{self.class.name}".constantize
+          end
+          
+          # TODO add an option to pass the name of the association through options
+          define_method 'list_reference' do
+            eval "_parent_document.#{self.class.name.pluralize.underscore}.sort"
+          end
+          
           key configuration[:column].to_sym, Integer
           
           before_save :add_to_list_bottom
@@ -30,14 +39,6 @@ module MongoMapper
         def <=>(another_item)
           self.send(position_column).to_i <=> another_item.send(position_column).to_i
         end
-        
-        def list_reference
-          # FIXME this should be determined automatically or passed
-          _parent_document.embedded_list_items.sort
-        end
-        
-        
-        
         
         def insert_at(position = 1)
           insert_at_position(position)
@@ -105,9 +106,7 @@ module MongoMapper
         def in_list?
           !self.send(position_column).nil?
         end                
-        
-        private
-        
+
         def add_to_list_top
           increment_positions_on_all_items
           assume_top_position
@@ -117,6 +116,8 @@ module MongoMapper
           return self.send(position_column) if in_list?
           self[position_column] = bottom_position_in_list.to_i+1
         end
+                
+        private
         
         def bottom_position_in_list(except=nil)
           item = bottom_item(except)
