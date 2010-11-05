@@ -27,7 +27,7 @@ module MongoMapper
           
           key configuration[:column].to_sym, Integer
           
-          before_save :add_to_list_bottom
+          before_save :add_to_list_bottom, :if => Proc.new{ |i| i.new_record? && !i.in_list? }
         end
     
       end
@@ -113,7 +113,6 @@ module MongoMapper
         end
         
         def add_to_list_bottom
-          return self.send(position_column) if in_list?
           self[position_column] = bottom_position_in_list.to_i+1
         end
                 

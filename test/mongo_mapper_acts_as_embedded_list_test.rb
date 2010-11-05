@@ -117,7 +117,7 @@ class ListTest < ActiveSupport::TestCase
     embedded_list_item(3).insert_at(2)
     assert_equal 2, embedded_list_item(3).pos
     assert_equal [1,3,2,4], embedded_list_items_ids
-    
+
     embedded_list_item(4).insert_at(1)
     assert_equal 1, embedded_list_item(4).pos
     assert_equal [4,1,3,2], embedded_list_items_ids
@@ -178,6 +178,27 @@ class PositionAssignmentTest < ActiveSupport::TestCase
   def setup
     @list_root = ListRoot.new
     (1..4).each{ |counter| @list_root.embedded_list_items.build(:original_id => counter) }
+    @list_root.save
+  end
+  
+  def test_presence
+    assert_equal @list_root.embedded_list_items.count, 4
+  end
+  
+  def test_assigned_positions
+    assert_equal [1,2,3,4], @list_root.embedded_list_items.sort.map(&:pos)
+    assert_equal [1,2,3,4], embedded_list_items_ids
+  end
+  
+end
+
+# POSITION ASSIGNMENT TEST
+
+class PositionAssignmentTest2 < ActiveSupport::TestCase
+  
+  def setup
+    @list_root = ListRoot.new
+    (1..4).each{ |counter| @list_root.embedded_list_items.build(:pos => counter, :original_id => counter) }
     @list_root.save
   end
   
