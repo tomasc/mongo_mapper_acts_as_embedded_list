@@ -32,11 +32,16 @@ module MongoMapper
         end
         
         def list_reference
+          # FIXME this should be determined automatically or passed
           _parent_document.embedded_list_items.sort
         end
         
         
         
+        
+        def insert_at(position = 1)
+          insert_at_position(position)
+        end        
         
         def move_lower
           return unless lower_item
@@ -62,49 +67,9 @@ module MongoMapper
           assume_top_position
         end
         
-        def insert_at(position = 1)
-          insert_at_position(position)
-        end
-        
-        def insert_at_position(position)
-          remove_from_list
-          
-          increment_positions_on_lower_items( position )
-          self[position_column] = position
-        end
-        
         def remove_from_list
           decrement_positions_on_lower_items
           self[position_column] = nil
-        end
-        
-        def in_list?
-          !self.send(position_column).nil?
-        end
-        
-        def first?
-          return false unless in_list?
-          self.send(position_column) == 1
-        end
-        
-        def last?
-          return false unless in_list?
-          self.send(position_column) == bottom_position_in_list
-        end
-        
-        def add_to_list_bottom
-          return self.send(position_column) if in_list?
-          self[position_column] = bottom_position_in_list.to_i+1
-        end
-        
-        def lower_item
-          return nil unless in_list?
-          list_reference.select(&:in_list?).detect{ |i| i.send(position_column) == self.send(position_column)+1 }
-        end
-        
-        def higher_item
-          return nil unless in_list?
-          list_reference.select(&:in_list?).detect{ |i| i.send(position_column) == self.send(position_column)-1 }
         end
         
         def decrement_position
@@ -117,18 +82,49 @@ module MongoMapper
           self[position_column] = self.send(position_column)+1
         end
         
-        def decrement_positions_on_lower_items
-          return unless in_list?
-          list_reference.select(&:in_list?).select{ |i| i.send(position_column) > self.send(position_column) }.each{ |i| i.decrement_position }
+        def first?
+          return false unless in_list?
+          self.send(position_column) == 1
         end
         
-        def increment_positions_on_lower_items(position)
-          list_reference.select(&:in_list?).select{ |i| i.send(position_column) >= position }.each{ |i| i.increment_position }
+        def last?
+          return false unless in_list?
+          self.send(position_column) == bottom_position_in_list
+        end        
+                
+        def lower_item
+          return nil unless in_list?
+          list_reference.select(&:in_list?).detect{ |i| i.send(position_column) == self.send(position_column)+1 }
         end
         
-        def increment_positions_on_higher_items
-          return unless in_list?
-          list_reference.select(&:in_list?).select{ |i| i.send(position_column) < self.send(position_column) }.each{ |i| i.increment_position }
+        def higher_item
+          return nil unless in_list?
+          list_reference.select(&:in_list?).detect{ |i| i.send(position_column) == self.send(position_column)-1 }
+        end
+        
+        def in_list?
+          !self.send(position_column).nil?
+        end                
+        
+        private
+        
+        def add_to_list_top
+          increment_positions_on_all_items
+          assume_top_position
+        end
+        
+        def add_to_list_bottom
+          return self.send(position_column) if in_list?
+          self[position_column] = bottom_position_in_list.to_i+1
+        end
+        
+        def bottom_position_in_list(except=nil)
+          item = bottom_item(except)
+          item ? item.send(position_column) : 0
+        end        
+        
+        def bottom_item(except=nil)
+          list_reference.select(&:in_list?).reject{|i|i==except}.last
         end
         
         def assume_bottom_position
@@ -137,15 +133,34 @@ module MongoMapper
         
         def assume_top_position
           self[position_column] = 1
+        end        
+        
+        def decrement_positions_on_higher_items(position)
+          list_reference.select(&:in_list?).select{ |i| i.send(position_column) <= position }.each{ |i| i.decrement_position }
+        end        
+        
+        def decrement_positions_on_lower_items
+          return unless in_list?
+          list_reference.select(&:in_list?).select{ |i| i.send(position_column) > self.send(position_column) }.each{ |i| i.decrement_position }
+        end
+                
+        def increment_positions_on_higher_items
+          return unless in_list?
+          list_reference.select(&:in_list?).select{ |i| i.send(position_column) < self.send(position_column) }.each{ |i| i.increment_position }
         end
         
-        def bottom_position_in_list(except=nil)
-          item = bottom_item(except)
-          item ? item.send(position_column) : 0
+        def increment_positions_on_lower_items(position)
+          list_reference.select(&:in_list?).select{ |i| i.send(position_column) >= position }.each{ |i| i.increment_position }
+        end                
+                        
+        def increment_positions_on_all_items
+          list_reference.select(&:in_list?).each{ |i| i.increment_position }
         end
-        
-        def bottom_item(except=nil)
-          list_reference.select(&:in_list?).reject{|i|i==except}.last
+                
+        def insert_at_position(position)
+          remove_from_list
+          increment_positions_on_lower_items( position )
+          self[position_column] = position
         end
         
       end
