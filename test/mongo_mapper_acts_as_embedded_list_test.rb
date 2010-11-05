@@ -132,13 +132,14 @@ class ListTest < ActiveSupport::TestCase
 
     embedded_list_item(2).remove_from_list # FIXME this sould be called automatically
     @list_root.embedded_list_items.delete( embedded_list_item(2) ) 
+    
     assert_equal [1,3,4], embedded_list_items_ids
     
     assert_equal 1, embedded_list_item(1).pos
     assert_equal 2, embedded_list_item(3).pos
     assert_equal 3, embedded_list_item(4).pos
     
-    embedded_list_item(1).remove_from_list
+    embedded_list_item(1).remove_from_list # FIXME this sould be called automatically
     @list_root.embedded_list_items.delete( embedded_list_item(1) )
     
     assert_equal [3,4], embedded_list_items_ids
