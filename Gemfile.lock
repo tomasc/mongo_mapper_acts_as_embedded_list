@@ -1,6 +1,6 @@
 GIT
   remote: http://github.com/jnunemaker/mongomapper.git
-  revision: fd59b0ab068be7321f8e84b9dc12fb4fa6b8535d
+  revision: b24db29c236f239d6a5a821fb6a444430e89f9d6
   branch: rails3
   specs:
     mongo_mapper (0.8.4)
@@ -56,7 +56,7 @@ GEM
     mime-types (1.16)
     mm_dirtier (0.1.1)
       observables (~> 0.1.2)
-    mm_partial_update (0.1.0)
+    mm_partial_update (0.1.1)
       mm_dirtier (~> 0.1.1)
       observables (~> 0.1.2)
     mongo (1.1.1)
@@ -91,7 +91,7 @@ GEM
       ruby-debug-base (~> 0.10.3.0)
     ruby-debug-base (0.10.3)
       linecache (>= 0.3)
-    thor (0.14.3)
+    thor (0.14.4)
     treetop (1.4.8)
       polyglot (>= 0.3.1)
     tzinfo (0.3.23)
@@ -104,5 +104,6 @@ DEPENDENCIES
   mm_partial_update
   mongo (~> 1.1.1)
   mongo_mapper!
+  observables
   rails (= 3.0.1)
   ruby-debug

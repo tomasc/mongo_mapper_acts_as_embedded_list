@@ -13,9 +13,11 @@ class ListRoot
   
   include MongoMapper::Document
   
-  many :embedded_list_items, :class_name => 'EmbeddedListMixin'#, :order => :pos.asc
-  
+  many :embedded_list_items, :class_name => 'EmbeddedListMixin'
+
 end
+
+
 
 class EmbeddedListMixin
   include MongoMapper::EmbeddedDocument
@@ -26,6 +28,7 @@ class EmbeddedListMixin
   key :original_id, Integer
 
   acts_as_embedded_list :column => :pos, :scope => :embedded_list_items
+  
 end
 
 
@@ -36,7 +39,7 @@ class ActiveSupport::TestCase
 	private
 	
 	def embedded_list_items
-		@list_root.embedded_list_items.sort_by(&:pos).map(&:original_id)
+		@list_root.embedded_list_items.sort.map(&:original_id)
 	end
 	
 	def embedded_list_item(original_id)
@@ -87,61 +90,82 @@ end
 # 
 # 
 # 
+
+# class PrereqisitesTest < ActiveSupport::TestCase
+#   
+#   def setup
+#     @list_root = ListRoot.new
+#     (1..4).each { |counter| @list_root.embedded_list_items.build( :pos => counter, :original_id => counter ) }
+#     @list_root.save    
+#     debugger
+#   end
+#   
+#   test "parent_association" do
+#     assert_equal embedded_list_item(1).list, @list_root.embedded_list_items
+#   end
+#   
+# end
+
+
 class ListTest < ActiveSupport::TestCase
 
     def setup
-      @list_root = ListRoot.create
-      (1..4).each do |counter| 
-        @list_root.embedded_list_items << EmbeddedListMixin.new( :pos => counter, :original_id => counter )
-      end
+      @list_root = ListRoot.new
+      (1..4).each{ |counter| @list_root.embedded_list_items.build( :original_id => counter ) }
       @list_root.save
+      # debugger
     end
-  
+      
     def test_presence
+      # debugger
       assert_equal @list_root.embedded_list_items.count, 4
     end
-  
+    
+    def test_positions_on_build
+      assert_equal [1, 2, 3, 4], @list_root.embedded_list_items.sort.map(&:pos)
+    end
+      
     def test_reordering
       assert_equal [1, 2, 3, 4], embedded_list_items
+
+      # embedded_list_item(2).move_lower
+      # assert_equal [1, 3, 2, 4], embedded_list_items
+      #   
+      # embedded_list_item(2).move_higher
+      # assert_equal [1, 2, 3, 4], embedded_list_items
+      #   
+      # embedded_list_item(1).move_to_bottom
+      # assert_equal [2, 3, 4, 1], embedded_list_items
+      #   
+      # embedded_list_item(1).move_to_top
+      # assert_equal [1, 2, 3, 4], embedded_list_items
+      #   
+      # embedded_list_item(2).move_to_bottom
+      # assert_equal [1, 3, 4, 2], embedded_list_items
+      #   
+      # embedded_list_item(4).move_to_top
+      # assert_equal [4, 1, 3, 2], embedded_list_items
+    end
     
-      embedded_list_item(2).move_lower
-      assert_equal [1, 3, 2, 4], embedded_list_items
-        
-      embedded_list_item(2).move_higher
-      assert_equal [1, 2, 3, 4], embedded_list_items
-        
-      embedded_list_item(1).move_to_bottom
-      assert_equal [2, 3, 4, 1], embedded_list_items
-        
-      embedded_list_item(1).move_to_top
-      assert_equal [1, 2, 3, 4], embedded_list_items
-        
-      embedded_list_item(2).move_to_bottom
-      assert_equal [1, 3, 4, 2], embedded_list_items
-        
-      embedded_list_item(4).move_to_top
-      assert_equal [4, 1, 3, 2], embedded_list_items
-    end
+    # def test_move_to_bottom_with_next_to_last_item
+    #   assert_equal [1, 2, 3, 4], embedded_list_items
+    #   embedded_list_item(3).move_to_bottom
+    #   assert_equal [1, 2, 4, 3], embedded_list_items
+    # end
       
-    def test_move_to_bottom_with_next_to_last_item
-      assert_equal [1, 2, 3, 4], embedded_list_items
-      embedded_list_item(3).move_to_bottom
-      assert_equal [1, 2, 4, 3], embedded_list_items
-    end
-      
-    def test_next_prev
-      assert_equal embedded_list_item(2), embedded_list_item(1).lower_item
-      assert_nil embedded_list_item(1).higher_item
-      assert_equal embedded_list_item(3), embedded_list_item(4).higher_item
-      assert_nil embedded_list_item(4).lower_item
-    end
+    # def test_next_prev
+    #   assert_equal embedded_list_item(2), embedded_list_item(1).lower_item
+    #   assert_nil embedded_list_item(1).higher_item
+    #   assert_equal embedded_list_item(3), embedded_list_item(4).higher_item
+    #   assert_nil embedded_list_item(4).lower_item
+    # end
   
     # def test_injection
     #   item = ListMixin.new(:parent_id => 1)
     #   assert_equal item.scope_condition, {:parent_id => 1}
     #   assert_equal "pos", item.position_column
     # end
-  
+      
     # def test_insert
     #   new = EmbeddedListMixin.new(:parent_id => 20)
     #   assert_equal 1, new.pos
@@ -202,10 +226,12 @@ class ListTest < ActiveSupport::TestCase
     # def test_delete_middle
     #   assert_equal [1, 2, 3, 4], embedded_list_items
     # 
-    #   embedded_list_item(2).destroy
-    #       
+    #   # debugger
+    #   @list_root.embedded_list_items.delete( embedded_list_item(2) )
+    #   @list_root.save
+    #         
     #   assert_equal [1, 3, 4], embedded_list_items
-    #       
+    #                   
     #   assert_equal 1, embedded_list_item(1).pos
     #   assert_equal 2, embedded_list_item(3).pos
     #   assert_equal 3, embedded_list_item(4).pos

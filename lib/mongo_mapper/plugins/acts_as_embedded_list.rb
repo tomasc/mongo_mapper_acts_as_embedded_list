@@ -3,57 +3,105 @@ module MongoMapper
     module ActsAsEmbeddedList
 
       require 'mongo_mapper'
-      require 'mm_partial_update'
+      # require 'observables'
+      # require 'mm_partial_update'
+      # require "observer"
 
-      
   
       module ClassMethods
+	
         def acts_as_embedded_list(options = {})
           configuration = { :column => "position", :scope => {} }
           configuration.update(options) if options.is_a?(Hash)
           
           # TODO if no scope specified, we can derive it from class name
           
-        #   configuration[:scope] = "#{configuration[:scope]}_id".intern if configuration[:scope].is_a?(Symbol) && configuration[:scope].to_s !~ /_id$/
-        #       
-        #   if configuration[:scope].is_a?(Symbol)
-        #     scope_condition_method = %(
-        #               def scope_condition
-        #                 { "#{configuration[:scope].to_s}" => send(:#{configuration[:scope].to_s}) }.symbolize_keys!
-        #               end
-        #             )
-        #   elsif configuration[:scope].is_a?(Array)
-        #     scope_condition_method = %(
-        #               def scope_condition
-        #                 attrs = %w(#{configuration[:scope].join(" ")}).inject({}) do |memo, column| 
-        #                   memo[column.intern] = send(column.intern)
-        #           memo
-        #                 end
-        #         attrs.symbolize_keys!
-        #               end
-        #             )
-        #   else
-        #     scope_condition_method = "def scope_condition() \"#{configuration[:scope]}\" end"
-        #   end
-              
-          class_eval <<-EOV
-            include MongoMapper::Plugins::ActsAsEmbeddedList::InstanceMethods
+          
+          # we could also, after adding 
+          
+          
+          
+          
+ #   configuration[:scope] = "#{configuration[:scope]}_id".intern if configuration[:scope].is_a?(Symbol) && configuration[:scope].to_s !~ /_id$/
+ #       
+ #   if configuration[:scope].is_a?(Symbol)
+ #     scope_condition_method = %(
+ #               def scope_condition
+ #                 { "#{configuration[:scope].to_s}" => send(:#{configuration[:scope].to_s}) }.symbolize_keys!
+ #               end
+ #             )
+ #   elsif configuration[:scope].is_a?(Array)
+ #     scope_condition_method = %(
+ #               def scope_condition
+ #                 attrs = %w(#{configuration[:scope].join(" ")}).inject({}) do |memo, column| 
+ #                   memo[column.intern] = send(column.intern)
+ #           memo
+ #                 end
+ #         attrs.symbolize_keys!
+ #               end
+ #             )
+ #   else
+ #     scope_condition_method = "def scope_condition() \"#{configuration[:scope]}\" end"
+ #   end
 
-            def list_reference # TODO maybe better method name?
-              _parent_document.embedded_list_items # TODO this needs to be based on scope!
-            end
+          class_eval <<-EOV
+            include Comparable
+          
+            def list_reference                              # FIXME maybe better method name?
+               _parent_document.embedded_list_items.sort   # TODO this needs to be based on scope!
+             end
 
             def position_column
               '#{configuration[:column]}'
             end
-          EOV
+            
+            before_save :add_to_list_bottom
+        	EOV
         end
     
       end
 
 
-
-      module InstanceMethods      
+      module InstanceMethods
+			
+				# def subscribe_to_association
+				# 	# puts list_reference.listening?
+				# 	
+				# 	list_reference.make_observable if can_be_observable?
+				# 	list_reference.subscribe(/before_removed/) do |change_type, args| 
+				# 		puts args.inspect if args.changes[:removed].include?(self)
+				# 	end
+				# end
+				
+        # def on_proxy_change(sender, type, args)
+        #                 puts type
+        #   case type
+        #             when :after_added
+        #               add_to_list_bottom if args.changes[:added].include?(self) # FIXME this does not work
+        #             when :before_removed
+        #               # if args.changes[:removed].include?(self)
+        #               #   decrement_positions_on_lower_items
+        #               #   #sender.clear_observer # WORKS?
+        #               # end
+        #           end
+        # end
+				
+        # def list_reference
+        #   if _parent_document
+        #     _parent_document.associations.collect{ |a| _parent_document.get_proxy(a[1]) }.detect{ |a| a.include?(self) } 
+        #   end
+        # end
+        
+        
+				
+        def <=>(another_item)
+          another_item.send(position_column).to_i <=> self.send(position_column).to_i 
+        end
+				
+				
+				
+				
+				
       
         # Insert the item at the given position (defaults to the top position of 1).
         def insert_at(position = 1)
@@ -92,7 +140,8 @@ module MongoMapper
     
         def update_position(value=nil)
           self[position_column] = value
-          self.save_changes # requires mm_partial_update
+          # self.save_changes # requires mm_partial_update
+          self._root_document.save
         end
 
         # Removes the item from the list.
@@ -165,7 +214,7 @@ module MongoMapper
         
         # Returns the bottom item
         def bottom_item(except = nil)
-          list_reference.select{ |i| i.id != except }.sort_by{ |i| i.send(position_column) }.last
+          list_reference.select{ |i| i.id != except }.last
         end
         
         # Forces item to assume the bottom position in the list.
@@ -223,6 +272,45 @@ module MongoMapper
 
       end
 
+    end
+  end
+end
+
+
+
+
+
+
+
+# TODO we need to tap into association methods and set up callbacks here
+module MongoMapper
+  module Plugins
+    module Associations
+      class ManyEmbeddedProxy
+      
+        def <<(*docs)
+          super(*docs)
+          # we could also just override delete and hook to reindex code
+          # but not for everything!
+
+
+          # make_observable if can_be_observable? && !observable?
+          # tap {|a|a.make_observable}
+        
+          # subscribe do |type, args| 
+          #   puts type# if args.changes[:removed].include?(self)
+          # end
+        
+          # self.clear_observer
+          # self.make_observable
+          # self.set_observer{ |sender,type,args| puts type }
+        
+          # docs.each do |doc|
+            # self.set_observer(doc, :callback_method => :on_proxy_change)            
+          # end
+        end
+
+      end
     end
   end
 end
