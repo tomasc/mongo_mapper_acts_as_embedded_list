@@ -8,7 +8,10 @@ It has (almost) the same functionality and passes the original test-suite. The c
 
 * Figure out how to set item's default position when first added to a list (through .build or <<).
 * Figure out how to automatically remove item from list when deleted (through .delete(item)).
+* The name of the association the list items are stored in is now automatically derived from the class of an EmbeddedDocument. This should be more flexible.
 * Add tests for deeply nested documents.
+* Add tests for polymorphic list.
+* Add tests for subclasses.
 
 == Example
 
