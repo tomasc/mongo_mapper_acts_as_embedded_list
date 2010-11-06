@@ -19,7 +19,7 @@ It has (almost) the same functionality and passes the original test-suite. The c
 
   class TodoItem
     include MongoMapper::EmbeddedDocument
-    plugin MongoMapper::Plugins::ActsAsList
+    plugin MongoMapper::Plugins::ActsAsEmbeddedList
     acts_as_embedded_list :column => :pos
   end
 
