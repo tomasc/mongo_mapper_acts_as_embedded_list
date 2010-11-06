@@ -1,1 +1,41 @@
-WORK IN PROGRESS
+= mongo_mapper_acts_as_embedded_list
+
+This is a port of classic Rails {acts_as_list}[http://github.com/rails/acts_as_list] to Mongo Mapper. This MongoMapper plugin provides the capabilities for sorting and reordering a number of EmbeddedDocuments in a list. If you do not specify custom position column in the options, a key named position will be created by default.
+
+It has (almost) the same functionality and passes the original test-suite. The changes to the list are not persisted, you need to call .save on _root_document or on individual items by yourself.
+
+== TODO
+
+* Figure out how to set item's default position when first added to a list (through .build or <<).
+* Figure out how to automatically remove item from list when deleted (through .delete(item)).
+* Add tests for deeply nested documents.
+
+== Example
+
+  class TodoList
+    include MongoMapper::Document
+    many :todo_items
+  end
+
+  class TodoItem
+    include MongoMapper::EmbeddedDocument
+    plugin MongoMapper::Plugins::ActsAsList
+    acts_as_embedded_list :column => :pos
+  end
+
+  todo_list.todo_items.first.move_to_bottom
+  todo_list.todo_items.last.move_higher
+
+See tests for more examples.
+
+== Note on Patches/Pull Requests
+
+* Fork the project.
+* Make your feature addition or bug fix.
+* Add tests for it. This is important so I don't break it in a future version unintentionally.
+* Commit, do not mess with rakefile, version, or history. (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
+* Send me a pull request. Bonus points for topic branches.
+
+== Copyright
+
+Original Rails' acts_as_list Copyright (c) 2007 David Heinemeier Hansson, released under the MIT license
